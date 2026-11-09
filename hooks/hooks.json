@@ -1,0 +1,4 @@
+{
+  "description": "No automatic hooks or background commands. All changes require explicit action.",
+  "hooks": {}
+}
