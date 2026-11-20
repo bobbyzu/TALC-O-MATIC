@@ -1,7 +1,7 @@
 {
   "name": "talc-o-matic-bbs",
-  "description": "Local, permission-first BBS-style static website prototyping; no automated installs, accounts or deployment. Derived from Hypervibe 3.4.17 (Apache-2.0); not affiliated with Hyper Wisdom.",
-  "version": "0.1.2",
+  "description": "Local, permission-first multi-theme static website prototyping; no automated installs, accounts or deployment. Derived from Hypervibe 3.4.17 (Apache-2.0); not affiliated with Hyper Wisdom.",
+  "version": "0.2.2",
   "author": {
     "name": "TALC-O-MATIC contributors"
   },

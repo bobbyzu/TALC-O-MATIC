@@ -3,13 +3,13 @@
   "owner": {
     "name": "TALC-O-MATIC contributors"
   },
-  "description": "Distribution of the TALC-O-MATIC BBS plugin for Claude Code.",
+  "description": "Distribution of the TALC-O-MATIC multi-theme plugin for Claude Code.",
   "plugins": [
     {
       "name": "talc-o-matic-bbs",
       "source": "./",
-      "description": "Local, permission-first BBS-style static website prototyping; no automated installs, accounts or deployment. Derived from Hypervibe 3.4.17 (Apache-2.0); not affiliated with Hyper Wisdom.",
-      "version": "0.1.2",
+      "description": "Local, permission-first multi-theme static website prototyping; no automated installs, accounts or deployment. Derived from Hypervibe 3.4.17 (Apache-2.0); not affiliated with Hyper Wisdom.",
+      "version": "0.2.2",
       "license": "Apache-2.0"
     }
   ]

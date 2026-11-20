@@ -9,8 +9,12 @@ import { mkdir, writeFile, readFile, lstat, rename, rm, open } from 'node:fs/pro
 import { resolve, join } from 'node:path';
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
+import { createInterface } from 'node:readline';
 
-const title = 'TALC-O-MATIC BBS 0.1.2';
+const title = 'TALC-O-MATIC 0.2.1';
+const THEMES = ['bbs', 'editorial', 'technique'];
+function validTheme(x) { return THEMES.includes(x); }
+function themeOf(m) { return m.theme ?? 'bbs'; }
 const PORT = 8765;
 const BIND = '127.0.0.1';
 const MAX_LABEL = 120;
@@ -71,6 +75,7 @@ async function projectRoot(name) {
 
 function validateManifest(m) {
   if (!m || typeof m !== 'object' || !Array.isArray(m.pages)) throw new UserError('Manifeste invalide : "pages" manquant');
+  if (m.theme !== undefined && !validTheme(m.theme)) throw new UserError('Manifeste invalide : thème inconnu');
   const seen = new Set();
   for (const p of m.pages) {
     if (!p || typeof p !== 'object') throw new UserError('Manifeste invalide : entrée de page incorrecte');
@@ -96,38 +101,72 @@ function manifestText(m) { return JSON.stringify(m, null, 2) + '\n'; }
 
 // --- Rendu HTML ---------------------------------------------------------------------------------
 
-function page(slug, label, body, pages) {
-  const nav = pages.map(p => `<a href="${esc(p.slug)}.html"${p.slug === slug ? ' aria-current="page"' : ''}>[${esc(p.label)}]</a>`).join(' ');
-  return `<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(label)} · BBS</title><link rel="stylesheet" href="style.css"></head>\n<body><header><pre aria-hidden="true">+----------------------------------------+\n|     TALC-O-MATIC : BULLETIN BOARD      |\n+----------------------------------------+</pre><h1>${esc(label)}</h1><nav aria-label="Rubriques">${nav}</nav></header>\n<main><p>${esc(body)}</p></main><footer>LOCAL BBS · HTML + CSS · NO TRACKERS</footer></body></html>\n`;
+function page(slug, label, body, pages, theme = 'bbs') {
+  const nav = pages.map(p => `<a href="${esc(p.slug)}.html"${p.slug === slug ? ' aria-current="page"' : ''}>${theme === 'bbs' ? '[' : ''}${esc(p.label)}${theme === 'bbs' ? ']' : ''}</a>`).join(' ');
+  const text = esc(body).replace(/\r?\n/g, '<br>');
+  if (theme === 'bbs') return `<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(label)} · BBS</title><link rel="stylesheet" href="style.css"></head>\n<body><header><pre aria-hidden="true">+----------------------------------------+\n|     TALC-O-MATIC : BULLETIN BOARD      |\n+----------------------------------------+</pre><h1>${esc(label)}</h1><nav aria-label="Rubriques">${nav}</nav></header>\n<main><p>${text}</p></main><footer>LOCAL BBS · HTML + CSS · NO TRACKERS</footer></body></html>\n`;
+  if (theme === 'editorial') return `<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(label)} · TALC-O-MATIC</title><link rel="stylesheet" href="style.css"></head>\n<body><header class="topbar"><a class="brand" href="index.html">TALC—O—MATIC</a><nav aria-label="Rubriques">${nav}</nav></header><main><section class="hero"><span class="eyebrow">LES CAHIERS DE L’ARCHE · ÉDITORIAL</span><h1>${esc(label)}</h1><p class="lede">Un espace calme pour les idées et les expériences.</p></section><div class="content"><aside><span class="eyebrow">PROTOTYPE LOCAL</span><p>HTML et CSS indépendants</p></aside><article><h2>${esc(label)}</h2><p>${text}</p><div class="rule"></div><small>TALC-O-MATIC · Aucun script · Aucune ressource externe</small></article></div></main><footer>Des outils simples, pour ceux qui les utilisent.</footer></body></html>\n`;
+  return `<!doctype html>\n<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(label)} · TALC-O-MATIC</title><link rel="stylesheet" href="style.css"></head>\n<body><div class="shell"><header class="top"><a href="index.html" class="logo"><span class="mark">◆</span> TALC-O-MATIC</a><nav aria-label="Rubriques">${nav}</nav></header><section class="banner"><span class="kicker">LIGHTWEIGHT · LOCAL · OPEN</span><h1>${esc(label)}</h1><p>Simple. Lisible. Reproductible.</p></section><main class="panel"><h2>${esc(label)}</h2><p>${text}</p></main><footer>Prototype technique · HTML + CSS · sans dépendance externe</footer></div></body></html>\n`;
 }
 
-const css = `:root{color-scheme:dark;--fg:#b7ffab;--bg:#07140d;--border:#3d995e}*{box-sizing:border-box}body{margin:0 auto;max-width:68rem;padding:1.5rem;background:var(--bg);color:var(--fg);font:1.08rem/1.7 ui-monospace,Consolas,monospace}header,main,footer{margin:1.3rem 0;border:1px solid var(--border);padding:1.2rem}pre{overflow:auto;line-height:1.2}h1{font-size:1.5rem}a{color:#f8d782;display:inline-block;margin:.3rem}a:focus-visible{outline:3px solid #fff}nav{border-top:1px dashed var(--border);padding-top:1rem}footer{font-size:.75rem}::selection{background:#356a4a;color:white}\n`;
+const styles = {
+  bbs: `:root{color-scheme:dark;--fg:#b7ffab;--bg:#07140d;--border:#3d995e}*{box-sizing:border-box}body{margin:0 auto;max-width:68rem;padding:1.5rem;background:var(--bg);color:var(--fg);font:1.08rem/1.7 ui-monospace,Consolas,monospace}header,main,footer{margin:1.3rem 0;border:1px solid var(--border);padding:1.2rem}pre{overflow:auto;line-height:1.2}h1{font-size:1.5rem}a{color:#f8d782;display:inline-block;margin:.3rem}a:focus-visible{outline:3px solid #fff}nav{border-top:1px dashed var(--border);padding-top:1rem}footer{font-size:.75rem}::selection{background:#356a4a;color:white}\n`,
+  editorial: `:root{--paper:#f5f1e8;--ink:#242b28;--muted:#647168;--line:#d8d5cb;--accent:#416854}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.7 system-ui,sans-serif}a{color:inherit;text-underline-offset:4px}a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.topbar{max-width:1150px;margin:auto;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line)}.brand{font-weight:800;letter-spacing:.11em;text-decoration:none;font-size:.85rem}nav{display:flex;flex-wrap:wrap;gap:1rem}nav a{font-size:.85rem;text-decoration:none}nav a[aria-current]{text-decoration:underline}.hero{max-width:1150px;margin:auto;padding:5rem 1.6rem 4rem;border-bottom:1px solid var(--line)}.eyebrow{font:.72rem/1.5 system-ui,sans-serif;letter-spacing:.16em;color:var(--accent);font-weight:750}.hero h1{font:normal clamp(3rem,7vw,6rem)/1.07 Georgia,serif;letter-spacing:-.05em;margin:1.2rem 0}.lede{color:var(--muted);font-size:1.25rem}.content{max-width:1150px;margin:auto;padding:4rem 1.6rem 6rem;display:grid;grid-template-columns:180px minmax(0,740px);gap:4rem}.content aside{font-size:.85rem;color:var(--muted)}article h2{font:normal 2.4rem/1.2 Georgia,serif;margin:0 0 1.8rem}article p{white-space:normal;font-size:1.15rem}article .rule{border-top:1px solid var(--line);margin:3rem 0 1rem}article small{color:var(--muted)}footer{background:#26332d;color:#e6eadd;padding:2rem max(1.6rem,calc((100% - 1100px)/2));font-size:.85rem}@media(max-width:760px){.topbar{align-items:flex-start;flex-direction:column}.hero{padding-top:3rem}.content{display:block;padding-top:2.5rem}.content aside{margin-bottom:2rem}}\n`,
+  technique: `:root{--blue:#1673a6;--ink:#354a56;--line:#d9e5eb;--bg:#f6f9fb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}a{color:var(--blue)}a:focus-visible{outline:3px solid #187ba7;outline-offset:4px}.shell{max-width:1160px;margin:auto;background:#fff;min-height:100vh;box-shadow:0 0 2rem #1c506013}.top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.4rem 2rem;border-bottom:1px solid var(--line)}.logo{font-weight:800;text-decoration:none;color:#174c69;letter-spacing:.03em}.mark{font-size:1.5rem;color:var(--blue)}nav{display:flex;flex-wrap:wrap;gap:1.2rem}nav a{text-decoration:none;font-weight:600;font-size:.88rem}nav a[aria-current]{border-bottom:2px solid var(--blue)}.banner{background:linear-gradient(125deg,#125379,#2e8aaa);color:white;padding:4.5rem 2.2rem}.kicker{font-size:.75rem;letter-spacing:.18em;font-weight:700}.banner h1{font-size:clamp(2.4rem,6vw,4rem);line-height:1.12;margin:1rem 0}.banner p{font-size:1.25rem;opacity:.94}.panel{max-width:820px;padding:3rem 2.2rem 6rem}.panel h2{color:#184964}.panel p{font-size:1.12rem}footer{border-top:1px solid var(--line);padding:1.6rem 2.2rem;color:#617680;font-size:.82rem}@media(max-width:750px){.top{align-items:flex-start;flex-direction:column}.banner{padding:3rem 1.4rem}.panel{padding:2rem 1.4rem}}\n`
+};
 
-async function writeAllPages(root, pages) {
-  for (const x of pages) await atomicWrite(join(root, 'site', x.slug + '.html'), page(x.slug, x.label, x.body, pages));
+async function writeAllPages(root, pages, theme = 'bbs') {
+  for (const x of pages) await atomicWrite(join(root, 'site', x.slug + '.html'), page(x.slug, x.label, x.body, pages, theme));
 }
 
 // --- Commandes ----------------------------------------------------------------------------------
 
-async function init() {
-  if (!safeSlug(project)) throw new UserError('Nom : lettres minuscules, chiffres, tirets ; commencer par une lettre.');
-  const root = resolve(project);
+async function initProject(name, chosenTheme) {
+  if (!safeSlug(name)) throw new UserError('Nom : lettres minuscules, chiffres, tirets ; commencer par une lettre.');
+  const theme = chosenTheme;
+  if (!validTheme(theme)) throw new UserError('Thème attendu : bbs, editorial ou technique');
+  const root = resolve(name);
   const pages = [
-    { slug: 'index', label: 'Accueil', body: 'Bienvenue sur votre BBS local.' },
+    { slug: 'index', label: 'Accueil', body: theme === 'bbs' ? 'Bienvenue sur votre BBS local.' : theme === 'editorial' ? 'Bienvenue dans votre espace éditorial.' : 'Bienvenue dans votre espace de documentation technique.' },
     { slug: 'archives', label: 'Archives', body: 'Index des archives à compléter.' },
     { slug: 'messages', label: 'Messages', body: 'Rubrique des messages à compléter.' },
   ];
   try { await mkdir(root, { recursive: false }); } catch (e) { throw new UserError('Dossier existant ou impossible à créer : ' + e.code); }
   try {
     await mkdir(join(root, 'site'));
-    await putNew(join(root, 'site', 'style.css'), css);
-    for (const p of pages) await putNew(join(root, 'site', p.slug + '.html'), page(p.slug, p.label, p.body, pages));
+    await putNew(join(root, 'site', 'style.css'), styles[theme]);
+    for (const p of pages) await putNew(join(root, 'site', p.slug + '.html'), page(p.slug, p.label, p.body, pages, theme));
     // Le manifeste est écrit en dernier : sans manifeste, le projet n'est pas considéré comme créé.
-    await putNew(join(root, 'bbs.json'), manifestText({ name: project, kind: 'bbs-static', pages }));
+    await putNew(join(root, 'bbs.json'), manifestText({ name, kind: 'bbs-static', theme, pages }));
   } catch (e) {
     throw new UserError(`Création interrompue (${e.code || e.message}). Le dossier ${root} est incomplet : supprimez-le à la main avant de recommencer.`);
   }
-  console.log('CRÉÉ:', root, '\nPour voir: node scripts/bbs.mjs serve ' + project);
+  console.log('CRÉÉ:', root, '\nPour voir: node ' + JSON.stringify(process.argv[1]) + ' serve ' + name);
+}
+
+async function init() {
+  if (rest.length > 1) throw new UserError('Usage: init <projet> [bbs|editorial|technique]');
+  await initProject(project, rest[0] ?? 'bbs');
+}
+
+async function menu() {
+  const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: Boolean(process.stdin.isTTY) });
+  const answers = rl[Symbol.asyncIterator]();
+  const ask = async prompt => {
+    process.stdout.write(prompt);
+    const result = await answers.next();
+    if (result.done) throw new UserError('Saisie interrompue');
+    return result.value.trim();
+  };
+  try {
+    console.log('TALC-O-MATIC — choix du style\n1. BBS rétro (défaut)\n2. Éditorial chaud (inspiration éditoriale)\n3. Minimal technique (inspiration Alpine)');
+    const answer = (await ask('Modèle [1/2/3] : ')) || '1';
+    const choice = { '1': 'bbs', '2': 'editorial', '3': 'technique' }[answer];
+    if (!choice) throw new UserError('Choix invalide');
+    const name = await ask('Nom du nouveau projet (a-z, 0-9, tiret) : ');
+    await initProject(name, choice);
+    console.log('Aperçu : node ' + JSON.stringify(process.argv[1]) + ' serve ' + name);
+  } finally { rl.close(); }
 }
 
 async function add() {
@@ -148,7 +187,7 @@ async function add() {
   // 1) Le manifeste d'abord, de façon atomique : c'est la source de vérité.
   await atomicWrite(join(root, 'bbs.json'), manifestText(m));
   // 2) Puis les pages. En cas d'interruption ici, `rebuild` les régénère depuis le manifeste.
-  try { await writeAllPages(root, m.pages); } catch (e) {
+  try { await writeAllPages(root, m.pages, themeOf(m)); } catch (e) {
     throw new UserError(`Manifeste à jour mais pages incomplètes (${e.code || e.message}). Lancez : node scripts/bbs.mjs rebuild ${project}`);
   }
   console.log('PAGE AJOUTÉE:', slug);
@@ -157,9 +196,24 @@ async function add() {
 async function rebuild() {
   const root = await projectRoot(project);
   const m = await readManifest(root);
-  await writeAllPages(root, m.pages);
-  if (!(await assertRegularOrAbsent(join(root, 'site', 'style.css')))) await putNew(join(root, 'site', 'style.css'), css);
+  await writeAllPages(root, m.pages, themeOf(m));
+  await atomicWrite(join(root, 'site', 'style.css'), styles[themeOf(m)]);
   console.log(`RÉGÉNÉRÉ: ${m.pages.length} pages depuis bbs.json`);
+}
+
+async function theme() {
+  const [choice, ...extra] = rest;
+  if (!validTheme(choice) || extra.length) throw new UserError('Usage: theme <projet> <bbs|editorial|technique>');
+  const root = await projectRoot(project);
+  const m = await readManifest(root);
+  for (const p of m.pages) await assertRegularOrAbsent(join(root, 'site', p.slug + '.html'));
+  await assertRegularOrAbsent(join(root, 'site', 'style.css'));
+  m.theme = choice;
+  // Le manifeste est la source de vérité ; rebuild répare une interruption.
+  await atomicWrite(join(root, 'bbs.json'), manifestText(m));
+  await writeAllPages(root, m.pages, choice);
+  await atomicWrite(join(root, 'site', 'style.css'), styles[choice]);
+  console.log('THÈME:', choice, '·', m.pages.length, 'pages régénérées');
 }
 
 async function check() {
@@ -214,16 +268,18 @@ async function serve() {
   server.listen(PORT, BIND, () => console.log(`Aperçu local http://${BIND}:${PORT}/  (Ctrl+C pour arrêter)`));
 }
 
-const commands = { init, add, rebuild, check, serve };
+const commands = { init, menu, add, rebuild, theme, check, serve };
 const usage = `${title}
-node scripts/bbs.mjs init <projet>
+node scripts/bbs.mjs menu
+node scripts/bbs.mjs init <projet> [bbs|editorial|technique]
 node scripts/bbs.mjs add <projet> <slug> <titre> <texte>
 node scripts/bbs.mjs rebuild <projet>
+node scripts/bbs.mjs theme <projet> <bbs|editorial|technique>
 node scripts/bbs.mjs check <projet>
 node scripts/bbs.mjs serve <projet>`;
 
 if (!cmd) console.log(usage);
-else if (!Object.hasOwn(commands, cmd) || !project) { console.error(usage); process.exitCode = 1; }
+else if (!Object.hasOwn(commands, cmd) || (!project && cmd !== 'menu')) { console.error(usage); process.exitCode = 1; }
 else {
   try { await commands[cmd](); }
   catch (e) { fail(e instanceof UserError ? e.message : `${e.code || ''} ${e.message}`.trim()); }

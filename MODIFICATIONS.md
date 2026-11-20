@@ -43,3 +43,29 @@
 | `skills/start/SKILL.md`, `skills/bootstrap/SKILL.md` | Mention du remplacement du fichier d'origine |
 | `README.md`, `SECURITY.md`, `ATTRIBUTION.md` | Réécrits pour la publication : nom, statut expérimental, limites connues |
 | `RAPPORT_POUR_SILEX.md`, `CONTRE_AUDIT_SILEX.md`, `REVUE_FINALE_AEL.md` | Rapports internes de travail, retirés de la distribution publique |
+
+## 0.2.0 — sélection de trois thèmes (Aël, 2026-11-20)
+
+- `scripts/bbs.mjs` : ajout des thèmes `editorial` et `alpine`, du menu CLI `menu`, de `init <projet> [theme]`, de `theme <projet> <theme>`.
+- Le thème est persisté dans `bbs.json`; absence de champ `theme` = compatibilité BBS avec les anciens manifestes.
+- Mise à jour de `rebuild` pour régénérer aussi la feuille de style du thème actif.
+- Rendu en HTML statique avec échappement des entrées; aucune bibliothèque tierce, aucun JavaScript sur les sites générés.
+- `README.md`, skills et métadonnées du plugin mis à jour.
+- Références visuelles : prototype HTML original de TALC-O-MATIC et dépôt public `alpine-mksite` consulté comme référence. Aucun fichier tiers réemployé.
+- Tests de fonctionnement et limites dans `AUDIT_AEL_0.2.0.md`. Validation indépendante par Silus restant à faire.
+
+## 0.2.1 — retouches après contre-audit Silus (Aël, 2026-11-20)
+
+- Identifiant du thème `alpine` renommé en `technique` dans le moteur, le menu, les instructions et la galerie ; aucun alias (version 0.2.0 non publiée).
+- Symbole de bannière changé de triangle en losange pour différencier l'identité visuelle.
+- Mention du dépôt `alpine-mksite` clarifiée : consulté comme référence, non inclus.
+- Textes de bienvenue adaptés à chaque thème, métadonnées du marketplace harmonisées, chemin d'aperçu explicitement affiché.
+- Voir `AUDIT_AEL_0.2.1.md` et `TESTS_0.2.1.md` pour résultats et limites.
+
+## 0.2.2 — préparation de la publication (Aël, 2026-11-20)
+
+- Suppression de l’aperçu obsolète `previews/alpine/` (seuls les thèmes `bbs`, `editorial` et `technique` sont publiés).
+- Retrait des rapports de contre-audit et notes internes de la distribution publique.
+- Ajout d’un `TESTS.md` public résumant les validations reproductibles.
+- Versions des manifestes de plugin harmonisées sur `0.2.2`.
+- Aucun changement au moteur de génération par rapport à la version 0.2.1 auditée.

@@ -13,3 +13,5 @@ Après demande, exécute `node "${CLAUDE_PLUGIN_ROOT}/scripts/bbs.mjs" check '<p
 Si des pages manquent ou sont incomplètes, proposer (sans le lancer d'office) `node "${CLAUDE_PLUGIN_ROOT}/scripts/bbs.mjs" rebuild '<projet>'`, qui les régénère depuis `bbs.json`.
 
 **Politique :** jamais de `sudo`, d'installation, d'accès réseau sortant, de déploiement, de modification hors du dossier validé ni de contournement des permissions. Toujours demander un accord avant les écritures et préciser les fichiers touchés.
+
+Depuis la version 0.2.1, styles disponibles : `bbs`, `editorial`, `technique`. Conserver l’accord explicite de l’utilisateur avant toute écriture ou régénération de pages/CSS.

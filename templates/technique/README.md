@@ -1,0 +1,1 @@
+Thème technique original intégré dans `scripts/bbs.mjs`. Inspiré des principes de navigation et de clarté observés dans le dépôt de référence `alpine-mksite` ; aucun fichier de ce dépôt n’est reproduit.
