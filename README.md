@@ -1,4 +1,4 @@
-# TALC-O-MATIC 0.2.2 — 3 thèmes
+# TALC-O-MATIC 0.3.0 — cinq interfaces
 
 Atelier local de prototypage de sites statiques (BBS, éditorial, minimal technique), sous forme de plugin pour Claude Code.
 
@@ -33,12 +33,12 @@ node <plugin>/scripts/bbs.mjs rebuild mon-bbs
 
 Les styles disponibles sont `bbs` (inchangé par défaut), `editorial` (mise en page originale inspirée des principes éditoriaux contemporains) et `technique` (mise en page technique originale, inspirée de la clarté du site Alpine Linux). **Aucun code HTML/CSS, logo, police ou image d'Anthropic ou d'Alpine Linux n'est embarqué dans les thèmes.** Le dépôt public `alpine-mksite` a été consulté comme référence de structure ; aucun fichier, script ou dépendance de ce dépôt n’est intégré.
 
-Pour essayer directement les trois modèles, ouvrir `previews/index.html` dans Firefox (dans l'archive de livraison) ; les sites de démonstration sont autonomes.
+Pour consulter la démonstration fictive fournie à côté du moteur dans le dépôt, ouvrir `exemple-public/bibliotheque/vues/index.html` depuis la racine de l’archive extraite. Ce dossier est un exemple, pas une dépendance du moteur.
 
 Ajouter une rubrique (dans ce même répertoire parent) :
 
 ```sh
-node <plugin>/scripts/bbs.mjs add mon-bbs musique Musique 'Archives musicales du Renard.'
+node <plugin>/scripts/bbs.mjs add mon-bbs musique Musique 'Carnets et archives musicales.'
 ```
 
 Régénérer toutes les pages depuis le manifeste `bbs.json` (après une interruption, par exemple) :
@@ -56,7 +56,7 @@ node <plugin>/scripts/bbs.mjs rebuild mon-bbs
 - Retire le serveur MCP `context7` et les hooks d'ouverture de session.
 - Aucun paquet npm à installer ; le moteur ne lance aucun programme externe.
 - Aucun accès Internet requis ; le serveur d'aperçu écoute uniquement sur 127.0.0.1.
-- Le nouveau menu CLI propose trois styles, sans dépendances npm supplémentaires.
+- Le menu CLI propose trois thèmes historiques, sans dépendances npm supplémentaires.
 
 **Ce n'est pas une migration des fonctions d'Hypervibe** : T3, Vercel, paiement, authentification, SQL, agents, etc. ont été exclus délibérément. Le générateur produit uniquement du HTML et du CSS statiques.
 
@@ -65,3 +65,20 @@ node <plugin>/scripts/bbs.mjs rebuild mon-bbs
 ## Licence
 
 Apache License 2.0 (`LICENSE`). Avis d'attribution dans `NOTICE`.
+
+
+## Cinq interfaces (expérimental)
+
+Après `init`, `node <plugin>/scripts/bbs.mjs views mon-bbs` crée sous `mon-bbs/vues/` cinq versions HTML statiques du même contenu : `perso`, `bbs`, `technique`, `editorial`, `brut`. Le sélecteur HTML `<details>` permet de changer de vue sans quitter la rubrique, sans JavaScript. Ouvrir `mon-bbs/vues/index.html` dans un navigateur.
+
+`add`, `theme`, `rebuild` régénèrent les vues si `multiViews=true` dans `bbs.json`. Les chemins `vues/` et `site/` sont des **sorties générées** : les pages et CSS de même nom y sont **écrasés** à chaque génération. Ne pas y éditer une page générée. Les fichiers orphelins ajoutés séparément ne sont **plus supprimés automatiquement** ; `check` les signale, et `rebuild` les affiche sans les effacer. Placer ses fichiers manuels **hors des répertoires de sortie**.
+
+SVG : accepter seulement les SVG de confiance produits localement ; le filtre actuel ne protège pas contre tous les fichiers de tiers. Le serveur `serve` historique sert exclusivement `site/` : pour les cinq vues, ouvrir les fichiers directement.
+
+Ce paquet est un **candidat de revue**, pas une version officielle. Le moteur de la 0.2.1 et celui de la 0.2.2 publique sont identiques (même objet Git `dd428bbd5eb3a9c979a1d2e5b057aef5e44bba7c`) ; les ajustements de distribution 0.2.2 sont repris et documentés. Publication suspendue jusqu’à contre-audit et décision du mainteneur.
+
+## Contrôle indispensable avant publication
+
+Exécuter `node <plugin>/scripts/bbs.mjs check <projet>` avant toute mise en ligne. Les fichiers non gérés placés dans `vues/` sont **signalés comme orphelins**, conservés sur disque, mais font échouer `check` (code de sortie non nul). `rebuild` les signale **sans les supprimer**. Les pages et feuilles CSS attendues par le générateur sont en revanche écrasées. Les dossiers `site/` et `vues/` sont des sorties générées : ne pas y conserver son travail original.
+
+Vérifier le moteur depuis une extraction neuve : `python3 -I TALC-O-MATIC/tests/test_portable.py` (depuis la racine du paquet complet), ou `python3 -I tests/test_portable.py` depuis `TALC-O-MATIC/`. Node.js doit être accessible.

@@ -62,10 +62,18 @@
 - Textes de bienvenue adaptés à chaque thème, métadonnées du marketplace harmonisées, chemin d'aperçu explicitement affiché.
 - Voir `AUDIT_AEL_0.2.1.md` et `TESTS_0.2.1.md` pour résultats et limites.
 
-## 0.2.2 — préparation de la publication (Aël, 2026-11-20)
 
-- Suppression de l’aperçu obsolète `previews/alpine/` (seuls les thèmes `bbs`, `editorial` et `technique` sont publiés).
-- Retrait des rapports de contre-audit et notes internes de la distribution publique.
-- Ajout d’un `TESTS.md` public résumant les validations reproductibles.
-- Versions des manifestes de plugin harmonisées sur `0.2.2`.
-- Aucun changement au moteur de génération par rapport à la version 0.2.1 auditée.
+## 0.2.2 — publication des trois thèmes (2026-11-20)
+
+- Manifeste `plugin.json` et `marketplace.json` harmonisés à 0.2.2.
+- Ancien aperçu `alpine` supprimé ; aperçus BBS, éditorial et technique fournis.
+- Notes internes remplacées par un `TESTS.md` public.
+- **Aucune modification du moteur** par rapport à la version 0.2.1, vérifiée via l’empreinte Git.
+
+## 0.3.0 — publication stable des innovations
+
+- Cinq vues statiques à partir d’un seul manifeste, sélecteur repliable et navigation entre rubriques équivalentes.
+- Sous-ensemble Markdown avec échappement, SVG locaux filtrés (usage de confiance seulement).
+- Suppression automatique des fichiers orphelins désactivée : avertissements et intervention manuelle requise.
+- Documentation des limites et tests portables ajoutés.
+- Base de code du moteur 0.2.2 (identique octet pour octet à 0.2.1). Documentation et manifestes de distribution alignés sur la publication 0.2.2 ; ajouts développés et testés sur branche de revue indépendante.

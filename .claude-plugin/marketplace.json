@@ -9,7 +9,7 @@
       "name": "talc-o-matic-bbs",
       "source": "./",
       "description": "Local, permission-first multi-theme static website prototyping; no automated installs, accounts or deployment. Derived from Hypervibe 3.4.17 (Apache-2.0); not affiliated with Hyper Wisdom.",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "license": "Apache-2.0"
     }
   ]

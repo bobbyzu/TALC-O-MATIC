@@ -1,21 +1,7 @@
-# Tests publics — TALC-O-MATIC 0.2.2
+# Tests publics — TALC-O-MATIC 0.3.0
 
-Les vérifications ci-dessous sont exécutées sur des projets temporaires avec Node.js, sans deployment.
+Exécuter `python3 -I tests/test_portable.py` dans `TALC-O-MATIC/` depuis une extraction neuve (Node.js requis). Ce test utilise exclusivement des dossiers temporaires.
 
-## Validation fonctionnelle
+Il contrôle : anciens thèmes BBS/éditorial/technique ; refus de `alpine` ; cinq vues d’un seul manifeste ; navigation équivalente sans script ; génération déterministe ; `add`, `theme`, `rebuild`, `check` ; préservation et signalement d’un fichier orphelin ; rejet d’un SVG exécutant un script.
 
-- Analyse syntaxique `node --check scripts/bbs.mjs`.
-- `init` / `check` pour chacun des thèmes `bbs`, `editorial` et `technique`.
-- Changement de thème puis validation du résultat.
-- Ajout d’une page avec caractères HTML dans le titre et le texte : échappement vérifié.
-- `rebuild` / `check`.
-- Refus de thèmes inconnus ou de l’ancien identifiant `alpine`.
-- Refus de remplacer un `style.css` par lien symbolique.
-- Vérification du fonctionnement du menu interactif.
-- Compatibilité avec un ancien manifeste sans champ `theme`.
-
-## Périmètre
-
-Le contre-audit indépendant de 0.2.1 a validé le moteur et les trois thèmes. La version 0.2.2 ne modifie pas le moteur. Les tests d’intégration dans Claude Code et une revue exhaustive d’accessibilité restent à effectuer.
-
-Ces tests ne constituent pas une garantie générale de sécurité.
+Vérifications supplémentaires recommandées : revue visuelle clavier/mobile, sécurité des chemins/symlinks et entrée hostile XML/SVG. Les tests ne constituent pas une garantie exhaustive de sécurité.
