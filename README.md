@@ -1,6 +1,6 @@
 # TALC-O-MATIC 0.3.0 — cinq interfaces
 
-Atelier local de prototypage de sites statiques (BBS, éditorial, minimal technique), sous forme de plugin pour Claude Code.
+TALC-O-MATIC est un générateur libre de sites web statiques, conçu pour créer des pages légères, lisibles et personnalisables, sans JavaScript ni dépendances externes côté site. Il fonctionne en ligne de commande avec Node.js et peut également être utilisé comme plugin pour Claude Code.
 
 Œuvre dérivée du plugin Hypervibe 3.4.17 de Flavien Chervet (Copyright 2026 Hyper Wisdom, licence Apache 2.0). TALC-O-MATIC n'est ni affilié à Hyper Wisdom, ni approuvé par lui. Voir `NOTICE`, `ATTRIBUTION.md` et `MODIFICATIONS.md`.
 
